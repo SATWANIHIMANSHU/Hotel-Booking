@@ -11,34 +11,36 @@ const clerkWebhooks = async (req, res) => {
       "svix-signature": req.headers["svix-signature"],
     };
 
-    const payload = whook.verify(req.body, headers);
+    // ✅ USE RAW BODY
+    const payload = req.body.toString("utf8");
 
-    const { data, type } = payload;
+    const evt = whook.verify(payload, headers);
+
+    const { data, type } = evt;
 
     const userData = {
       _id: data.id,
       email: data.email_addresses[0].email_address,
-      username: `${data.first_name || ""} ${data.last_name || ""}`.trim(),
+      username: `${data.first_name ?? ""} ${data.last_name ?? ""}`,
       image: data.image_url,
-      recentSearchedCities: [],
     };
 
-    if (type === "user.created" || type === "user.updated") {
-      await User.findByIdAndUpdate(data.id, userData, {
-        upsert: true,
-        new: true,
-      });
+    if (type === "user.created") {
+      await User.create(userData);
+    }
+
+    if (type === "user.updated") {
+      await User.findByIdAndUpdate(data.id, userData);
     }
 
     if (type === "user.deleted") {
       await User.findByIdAndDelete(data.id);
     }
 
-    return res.status(200).json({ success: true });
-
-  } catch (error) {
-    console.error(error.message);
-    return res.status(400).json({ success: false });
+    res.status(200).json({ success: true });
+  } catch (err) {
+    console.error("Webhook error:", err.message);
+    res.status(400).json({ success: false });
   }
 };
 
