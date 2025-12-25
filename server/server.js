@@ -2,26 +2,28 @@ import express from "express";
 import "dotenv/config";
 import cors from "cors";
 import connectDB from "./configs/db.js";
-import { clerkMiddleware } from '@clerk/express'
 import clerkWebhooks from "./controllers/clerkWebhooks.js";
 
 connectDB();
 
-const app  = express();
-app.use(cors()) // alloes to connect backend with any frontend
+const app = express();
+app.use(cors());
 
-//Middleware
-app.use(express.json())
-app.use(clerkMiddleware())
+/* 🔴 DO NOT put express.json() globally */
 
-// API to listen to clerk webhooks
+/* ✅ RAW BODY ONLY FOR CLERK */
+app.post(
+  "/api/clerk",
+  express.raw({ type: "application/json" }),
+  clerkWebhooks
+);
 
-app.use("/api/clerk",clerkWebhooks)
+/* ✅ JSON for ALL OTHER ROUTES */
+app.use(express.json());
 
-app.get('/',(req,res)=>res.send(
-     "Api is working"
-))
+app.get("/", (req, res) => {
+  res.send("API is working fine");
+});
 
 const PORT = process.env.PORT || 3000;
-
-app.listen(PORT,()=>console.log(`Server running on port ${PORT}`))
+app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
