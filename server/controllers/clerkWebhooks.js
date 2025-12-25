@@ -24,21 +24,34 @@ const clerkWebhooks = async (req, res) => {
     };
 
     switch (type) {
-      case "user.created":
-        await User.create(userData);
-        break;
+  case "user.created": {
+    const userData = {
+      _id: data.id,
+      email: data.email_addresses?.[0]?.email_address || null,
+      username: `${data.first_name || ""} ${data.last_name || ""}`,
+      image: data.image_url || null,
+    };
+    await User.create(userData);
+    break;
+  }
 
-      case "user.updated":
-        await User.findByIdAndUpdate(data.id, userData);
-        break;
+  case "user.updated": {
+    const userData = {
+      email: data.email_addresses?.[0]?.email_address || null,
+      username: `${data.first_name || ""} ${data.last_name || ""}`,
+      image: data.image_url || null,
+    };
+    await User.findByIdAndUpdate(data.id, userData);
+    break;
+  }
 
-      case "user.deleted":
-        await User.findByIdAndDelete(data.id);
-        break;
+  case "user.deleted":
+    await User.findByIdAndDelete(data.id);
+    break;
 
-      default:
-        break;
-    }
+  default:
+    break;
+}
 
     res.status(200).json({ success: true });
   } catch (error) {
