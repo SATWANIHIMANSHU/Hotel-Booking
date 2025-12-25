@@ -12,7 +12,7 @@ const clerkWebhooks = async ()=>{
         const headers = {
             "svix-id": req.headers["svix-id"] ,
             "svix-timestamp": req.headers["svix-timestamp"],
-            "svix-sugnature": req.headers["svix-sugnature"]  
+            "svix-signature": req.headers["svix-signature"]  
         } 
 
 
