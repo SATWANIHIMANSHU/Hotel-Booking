@@ -11,36 +11,39 @@ const clerkWebhooks = async (req, res) => {
       "svix-signature": req.headers["svix-signature"],
     };
 
-    // ✅ USE RAW BODY
-    const payload = req.body.toString("utf8");
+    // ✅ RAW BODY verification
+    whook.verify(req.body.toString("utf8"), headers);
 
-    const evt = whook.verify(payload, headers);
-
-    const { data, type } = evt;
+    const { data, type } = JSON.parse(req.body.toString("utf8"));
 
     const userData = {
       _id: data.id,
       email: data.email_addresses[0].email_address,
-      username: `${data.first_name ?? ""} ${data.last_name ?? ""}`,
+      username: `${data.first_name} ${data.last_name}`,
       image: data.image_url,
     };
 
-    if (type === "user.created") {
-      await User.create(userData);
-    }
+    switch (type) {
+      case "user.created":
+        await User.create(userData);
+        break;
 
-    if (type === "user.updated") {
-      await User.findByIdAndUpdate(data.id, userData);
-    }
+      case "user.updated":
+        await User.findByIdAndUpdate(data.id, userData);
+        break;
 
-    if (type === "user.deleted") {
-      await User.findByIdAndDelete(data.id);
+      case "user.deleted":
+        await User.findByIdAndDelete(data.id);
+        break;
+
+      default:
+        break;
     }
 
     res.status(200).json({ success: true });
-  } catch (err) {
-    console.error("Webhook error:", err.message);
-    res.status(400).json({ success: false });
+  } catch (error) {
+    console.error("Webhook error:", error);
+    res.status(400).json({ success: false, message: error.message });
   }
 };
 
