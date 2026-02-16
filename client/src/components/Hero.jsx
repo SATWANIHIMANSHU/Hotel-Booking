@@ -1,6 +1,6 @@
 import React from "react";
 import { assets, cities } from "../assets/assets";
-import { useAppContext } from "../context/Appcontext";
+import { useAppContext } from "../context/AppContext";
 import { useState } from "react";
 
 const Hero = () => {

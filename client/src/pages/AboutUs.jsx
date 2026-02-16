@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { useAppContext } from "../context/Appcontext";
+import { useAppContext } from "../context/AppContext";
 import aboutHero from "../assets/About_Hero.jpg";
 import aboutMain from "../assets/About_Main.jpg";
 
