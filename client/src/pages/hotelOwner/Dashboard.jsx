@@ -1,10 +1,37 @@
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import Title from '../../components/Title'
 import { assets, dashboardDummyData } from '../../assets/assets'
+import { useAppContext } from '../../context/Appcontext'
 
 const Dashboard = () => {
 
-   const [dashboarddata, setDashboarddata] = useState(dashboardDummyData)
+ const {user,axios,getToken,currency,toast} = useAppContext();
+
+   const [dashboarddata, setDashboarddata] = useState({
+    bookings:[],
+    totalBookings:0,
+    totalRevenue:0
+   })
+
+   const fetchDashboardData = async()=>{
+    try {
+      const{data} = await axios.get('/api/bookings/hotel',{ headers: { Authorization: `Bearer ${await getToken()}` } })
+      if (data.success) {
+        setDashboarddata(data.dashboardData)
+      }else{
+        toast.error(data.message);
+      }
+    } catch (error) {
+      toast.error(error.message);
+    }
+   }
+
+   useEffect(() => {
+      if (user) {
+        fetchDashboardData();
+      }
+   }, [user])
+   
 
   return (
     <div>
@@ -24,7 +51,7 @@ const Dashboard = () => {
             <img src={assets.totalRevenueIcon} alt="" className='max-sm:hidden h-10'/>
             <div className='flex flex-col sm:ml-4 font-medium'>
                 <p>Total Revenue</p>
-                <p className='text-neutral-400 text-base'>${dashboarddata.totalRevenue}</p>
+                <p className='text-neutral-400 text-base'>{currency}{dashboarddata.totalRevenue}</p>
             </div>
         </div>
       </div>

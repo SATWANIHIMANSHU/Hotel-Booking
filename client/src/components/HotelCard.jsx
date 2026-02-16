@@ -39,14 +39,17 @@ const HotelCard = ({ room, index }) => {
         </div>
 
         {/* Location */}
-        <div className="flex items-center gap-2 mt-1">
-          <img
-            src={assets.locationIcon}
-            alt="location-icon"
-            className="h-4 w-4"
-          />
-          <span className="text-gray-600 text-sm">{room.hotel.address}</span>
-        </div>
+        <div className="flex items-start gap-2 mt-1">
+  <img
+    src={assets.locationIcon}
+    alt="location-icon"
+    className="h-4 w-4 mt-1"
+  />
+  <span className="text-gray-600 text-sm line-clamp-2 min-h-[40px]">
+    {room.hotel.address}
+  </span>
+</div>
+
 
         {/* Price + Button */}
         <div className="flex items-center justify-between mt-4">

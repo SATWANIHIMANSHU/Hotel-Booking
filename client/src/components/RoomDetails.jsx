@@ -7,17 +7,74 @@ import {
   roomsDummyData,
 } from "../assets/assets";
 import StarRating from "./StarRating";
+import { useAppContext } from "../context/Appcontext";
+import toast from "react-hot-toast";
 
 const RoomDetails = () => {
   const { id } = useParams();
+  const{rooms,getToken,axios,navigate}= useAppContext();
   const [room, setRoom] = useState(null);
   const [mainImage, setMainImage] = useState(null);
+  const [checkInDate, setCheckInDate] = useState("");
+  const [checkOutDate, setCheckOutDate] = useState("");
+  const [guests, setGuests] = useState(1);
+
+  const [isAvailable, setIsAvailable] = useState(false);
+
+
+  // Function to check room availability based on selected dates and guests
+  const checkAvailability = async() => {
+     try {
+       // check if check-in Date is greater than check-out date
+       if (checkInDate >= checkOutDate) {
+        toast.error("Check-in date must be less than check-out date");
+        return;
+       }
+       const {data} = await axios.post('/api/bookings/check-availabilty',{room:id,checkInDate,checkOutDate},{headers:{Authorization:`Bearer ${await getToken()}`}})
+       setIsAvailable(data.isAvailable);
+       if (data.isAvailable) {
+  toast.success("Room is available for selected dates");
+} else {
+  toast.error("Room is not available for selected dates");
+}
+
+     } catch (error) {
+        toast.error(error.message); 
+     }
+  }
+
+
+   //onsubmit handler for checkingAvailability and booking the room
+
+   const onSubmitHandler = async(e) =>{
+      try {
+        e.preventDefault();
+        if (!isAvailable) {
+          return checkAvailability();
+        }else{
+          const {data} = await axios.post('/api/bookings/book',{room:id,checkInDate,checkOutDate,guests,paymentMethod:"Pay At Hotel"},{headers:{Authorization:`Bearer ${await getToken()}`}})
+
+          if (data.success) {
+            toast.success(data.message);
+            navigate('/my-bookings');
+            scrollTo(0,0);
+          }else{
+            toast.error(data.message);
+          }
+        }
+
+
+      } catch (error) {
+        toast.error(error.message);
+        
+      }
+   }
 
   useEffect(() => {
-    const room = roomsDummyData.find((room) => room._id === id);
+    const room = rooms.find((room) => room._id === id);
     room && setRoom(room);
     room && setMainImage(room.images[0]);
-  }, []);
+  }, [rooms]);
 
   return (
     room && (
@@ -101,7 +158,7 @@ const RoomDetails = () => {
         </div>
 
         {/* Check-in Check-out Form  */}
-        <form
+        <form onSubmit={onSubmitHandler}
           className="flex flex-col md:flex-row items-start md:items-center justify-between 
 bg-white shadow-[0px_0px_20px_rgba(0,0,0,0.15)] p-6 rounded-xl mx-auto mt-16 max-w-6xl border border-gray-200"
         >
@@ -111,6 +168,8 @@ bg-white shadow-[0px_0px_20px_rgba(0,0,0,0.15)] p-6 rounded-xl mx-auto mt-16 max
                 Check-In
               </label>
               <input
+              onChange={(e)=>setCheckInDate(e.target.value)}
+                min={new Date().toISOString().split("T")[0]}
                 type="date"
                 id="CheckInDate"
                 placeholder="Check-In"
@@ -125,6 +184,9 @@ bg-white shadow-[0px_0px_20px_rgba(0,0,0,0.15)] p-6 rounded-xl mx-auto mt-16 max
                 Check-Out
               </label>
               <input
+               onChange={(e)=>setCheckOutDate(e.target.value)}
+               min={checkInDate}
+               disabled={!checkInDate}
                 type="date"
                 id="CheckOutDate"
                 placeholder="Check-Out"
@@ -138,9 +200,11 @@ bg-white shadow-[0px_0px_20px_rgba(0,0,0,0.15)] p-6 rounded-xl mx-auto mt-16 max
                 Guests
               </label>
               <input
+                onChange={(e)=>setGuests(e.target.value)}
+                value={guests}
                 type="number"
                 id="guests"
-                placeholder="0"
+                placeholder="1"
                 className="max-w-20 rounded border border-gray-300 px-3 py-2 mt-1.5 outline-none"
                 required
               />
@@ -150,7 +214,7 @@ bg-white shadow-[0px_0px_20px_rgba(0,0,0,0.15)] p-6 rounded-xl mx-auto mt-16 max
             type="submit"
             className="bg-primary hover:bg-primary-dull active:scale-95 transition-all text-white rounded-md max-md:w-full max-md:mt-6 md:px-25 py-3 md:py-4 text-base cursor-pointer"
           >
-            Check Availability
+            {isAvailable ? "Book Now" : "Check Availability"}
           </button>
         </form>
 
