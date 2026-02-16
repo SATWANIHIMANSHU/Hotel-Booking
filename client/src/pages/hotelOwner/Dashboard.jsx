@@ -84,7 +84,7 @@ const Dashboard = () => {
                           </td>
 
                           <td className='py-3 px-4 text-gray-700 border-t border-gray-300 text-center'>
-                           $ {item.totalPrice}
+                           ₹ {item.totalPrice}
                           </td>
                           
                           <td className='py-3 px-4 border-t border-gray-300 flex'>
