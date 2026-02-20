@@ -6,6 +6,10 @@ import { useState } from "react";
 const Hero = () => {
   const { navigate, getToken, axios, setSearchedCities } = useAppContext();
   const [destination, setDestination] = useState("");
+  const [checkIn, setCheckIn] = useState("");
+  const [checkOut, setCheckOut] = useState("");
+
+   const today = new Date().toISOString().split("T")[0];
 
   const onSearch = async (e) => {
     e.preventDefault();
@@ -33,19 +37,18 @@ const Hero = () => {
   return (
     <div
       className='flex flex-col items-start justify-center px-6 md:px-16 lg:px-24 xl:px-32 text-white 
-  bg-[url("/src/assets/heroImage.png")] bg-no-repeat bg-cover bg-center h-screen'
+  bg-[url("/src/assets/heroImage2.jpg")] bg-no-repeat bg-cover bg-center h-screen'
     >
       <p className="bg-[#49B9FF]/50 px-3.5 py-1 rounded-full mt-20">
-        The Ultimate Hotel Experience
+          Premium Stays, Simplified
       </p>
 
       <h1 className="font-playfair text-2xl md:text-5xl md:text-[56px] md:leading-56px font-bold md:font-extrabold max-w-xl mt-4">
-        Discover Your Perfect Gateway Destination
+       Your Next Stay Starts Here.
       </h1>
 
       <p className="max-w-130 mt-1 text-sm md:text-base">
-        Unparalleled luxury and comfort await at the world's most exclusive
-        hotels and resorts. Start your journey today.
+       Experience thoughtfully curated stays designed for comfort, convenience, and unforgettable travel.
       </p>
 
       <form
@@ -91,7 +94,16 @@ const Hero = () => {
           <input
             id="checkIn"
             type="date"
+            value={checkIn}
+            min={today}
+            onChange={(e) => {
+              setCheckIn(e.target.value);
+              if (checkOut && e.target.value > checkOut) {
+                setCheckOut("");
+              }
+            }}
             className=" rounded border border-gray-200 px-3 py-1.5 mt-1.5 text-sm outline-none"
+            required
           />
         </div>
 
@@ -105,7 +117,10 @@ const Hero = () => {
           <input
             id="checkOut"
             type="date"
-            className=" rounded border border-gray-200 px-3 py-1.5 mt-1.5 text-sm outline-none"
+            value={checkOut}
+            min={checkIn || today}
+            onChange={(e) => setCheckOut(e.target.value)}
+            className=" rounded border border-gray-200 px-3 py-1.5 mt-1.5 text-sm outline-none" required
           />
         </div>
 
@@ -117,8 +132,8 @@ const Hero = () => {
             max={4}
             id="guests"
             type="number"
+            defaultValue={1}
             className=" rounded border border-gray-200 px-3 py-1.5 mt-1.5 text-sm outline-none  max-w-16"
-            placeholder="0"
           />
         </div>
 
