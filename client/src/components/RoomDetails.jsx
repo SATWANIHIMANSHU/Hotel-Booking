@@ -12,7 +12,7 @@ import toast from "react-hot-toast";
 
 const RoomDetails = () => {
   const { id } = useParams();
-  const{rooms,getToken,axios,navigate}= useAppContext();
+  const { rooms, getToken, axios, navigate } = useAppContext();
   const [room, setRoom] = useState(null);
   const [mainImage, setMainImage] = useState(null);
   const [checkInDate, setCheckInDate] = useState("");
@@ -21,54 +21,76 @@ const RoomDetails = () => {
 
   const [isAvailable, setIsAvailable] = useState(false);
 
-
   // Function to check room availability based on selected dates and guests
-  const checkAvailability = async() => {
-     try {
-       // check if check-in Date is greater than check-out date
-       if (checkInDate >= checkOutDate) {
+  const checkAvailability = async () => {
+    try {
+      const token = await getToken();
+
+      if (!token) {
+        toast.error("Please login to check availability");
+        return;
+      }
+
+      // check if check-in Date is greater than check-out date
+      if (checkInDate >= checkOutDate) {
         toast.error("Check-in date must be less than check-out date");
         return;
-       }
-       const {data} = await axios.post('/api/bookings/check-availabilty',{room:id,checkInDate,checkOutDate},{headers:{Authorization:`Bearer ${await getToken()}`}})
-       setIsAvailable(data.isAvailable);
-       if (data.isAvailable) {
-  toast.success("Room is available for selected dates");
-} else {
-  toast.error("Room is not available for selected dates");
-}
-
-     } catch (error) {
-        toast.error(error.message); 
-     }
-  }
-
-
-   //onsubmit handler for checkingAvailability and booking the room
-
-   const onSubmitHandler = async(e) =>{
-      try {
-        e.preventDefault();
-        if (!isAvailable) {
-          return checkAvailability();
-        }else{
-          const {data} = await axios.post('/api/bookings/book',{room:id,checkInDate,checkOutDate,guests,paymentMethod:"Pay At Hotel"},{headers:{Authorization:`Bearer ${await getToken()}`}})
-
-          if (data.success) {
-            toast.success(data.message);
-            navigate('/my-bookings');
-            scrollTo(0,0);
-          }else{
-            toast.error(data.message);
-          }
-        }
-
-
-      } catch (error) {
-        toast.error(error.message);
-        
       }
-   }
+      const { data } = await axios.post(
+        "/api/bookings/check-availabilty",
+        { room: id, checkInDate, checkOutDate },
+        { headers: { Authorization: `Bearer ${await getToken()}` } },
+      );
+      setIsAvailable(data.isAvailable);
+      if (data.isAvailable) {
+        toast.success("Room is available for selected dates");
+      } else {
+        toast.error("Room is not available for selected dates");
+      }
+    } catch (error) {
+      toast.error(error.message);
+    }
+  };
+
+  //onsubmit handler for checkingAvailability and booking the room
+
+  const onSubmitHandler = async (e) => {
+    e.preventDefault();
+    try {
+      const token = await getToken();
+
+      if (!token) {
+        toast.error("Please login to continue booking");
+        return;
+      }
+
+      if (!isAvailable) {
+        return checkAvailability();
+      } else {
+        const { data } = await axios.post(
+          "/api/bookings/book",
+          {
+            room: id,
+            checkInDate,
+            checkOutDate,
+            guests,
+            paymentMethod: "Pay At Hotel",
+          },
+          { headers: { Authorization: `Bearer ${await getToken()}` } },
+        );
+
+        if (data.success) {
+          toast.success(data.message);
+          navigate("/my-bookings");
+          scrollTo(0, 0);
+        } else {
+          toast.error(data.message);
+        }
+      }
+    } catch (error) {
+      toast.error(error.message);
+    }
+  };
 
   useEffect(() => {
     const room = rooms.find((room) => room._id === id);
@@ -158,7 +180,8 @@ const RoomDetails = () => {
         </div>
 
         {/* Check-in Check-out Form  */}
-        <form onSubmit={onSubmitHandler}
+        <form
+          onSubmit={onSubmitHandler}
           className="flex flex-col md:flex-row items-start md:items-center justify-between 
 bg-white shadow-[0px_0px_20px_rgba(0,0,0,0.15)] p-6 rounded-xl mx-auto mt-16 max-w-6xl border border-gray-200"
         >
@@ -168,7 +191,7 @@ bg-white shadow-[0px_0px_20px_rgba(0,0,0,0.15)] p-6 rounded-xl mx-auto mt-16 max
                 Check-In
               </label>
               <input
-              onChange={(e)=>setCheckInDate(e.target.value)}
+                onChange={(e) => setCheckInDate(e.target.value)}
                 min={new Date().toISOString().split("T")[0]}
                 type="date"
                 id="CheckInDate"
@@ -184,9 +207,9 @@ bg-white shadow-[0px_0px_20px_rgba(0,0,0,0.15)] p-6 rounded-xl mx-auto mt-16 max
                 Check-Out
               </label>
               <input
-               onChange={(e)=>setCheckOutDate(e.target.value)}
-               min={checkInDate}
-               disabled={!checkInDate}
+                onChange={(e) => setCheckOutDate(e.target.value)}
+                min={checkInDate}
+                disabled={!checkInDate}
                 type="date"
                 id="CheckOutDate"
                 placeholder="Check-Out"
@@ -200,7 +223,7 @@ bg-white shadow-[0px_0px_20px_rgba(0,0,0,0.15)] p-6 rounded-xl mx-auto mt-16 max
                 Guests
               </label>
               <input
-                onChange={(e)=>setGuests(e.target.value)}
+                onChange={(e) => setGuests(e.target.value)}
                 value={guests}
                 type="number"
                 id="guests"
@@ -250,10 +273,10 @@ bg-white shadow-[0px_0px_20px_rgba(0,0,0,0.15)] p-6 rounded-xl mx-auto mt-16 max
         <div className="flex flex-col items-start gap-4">
           <div className="flex gap-4">
             <img
-  src={room.hotel.owner.image}
-  alt="Host"
-  className="h-14 w-14 md:h-20 md:w-20 rounded-full"
-/>
+              src={room.hotel.owner.image}
+              alt="Host"
+              className="h-14 w-14 md:h-20 md:w-20 rounded-full"
+            />
 
             <div>
               <p className="text-lg md:text-xl">Hosted by {room.hotel.name}</p>
@@ -263,9 +286,10 @@ bg-white shadow-[0px_0px_20px_rgba(0,0,0,0.15)] p-6 rounded-xl mx-auto mt-16 max
               </div>
             </div>
           </div>
-          <button className="px-6 py-2.5 mt-4 rounded text-white bg-primary hover:bg-primary-dull transition-all cursor-pointer">Contact Now</button>
+          <button className="px-6 py-2.5 mt-4 rounded text-white bg-primary hover:bg-primary-dull transition-all cursor-pointer">
+            Contact Now
+          </button>
         </div>
-
       </div>
     )
   );
